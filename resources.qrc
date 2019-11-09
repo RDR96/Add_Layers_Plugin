@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/add_layers" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
