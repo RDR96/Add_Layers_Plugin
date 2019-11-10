@@ -197,8 +197,7 @@ class AddLayers:
     def run(self):
 
         """Run method that performs all the real work"""
-        self.dlg.gridLayout.setColumnStretch(0, 1)
-        self.dlg.gridLayout.setColumnStretch(1, 1)
+        
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
@@ -208,6 +207,8 @@ class AddLayers:
 
         # show the dialog
         self.dlg.show()
+        self.dlg.gridLayout_2.setRowStretch(0, 3)
+        self.dlg.gridLayout_2.setRowStretch(1, 1)
                     
         self.dlg.pushButton.clicked.connect(self.test_print)
 
@@ -222,10 +223,16 @@ class AddLayers:
     
     def test_print(self):      
         label = QtWidgets.QLabel()        
-        filename, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", filter="*.shp, *tif")        
+        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", filter="*.shp")        
 
+        """label.setText(file)"""
+
+        url = QtCore.QUrl.fromLocalFile(file)        
+
+        from pathlib import Path    
+
+        filename = Path(file).name        
         label.setText(filename)
-        
-        self.dlg.gridLayout.addWidget(label)
+        self.dlg.gridLayout_2.addWidget(label)
         """win32api.MessageBox(0, filename, 'title', 0x00001000)"""
             
