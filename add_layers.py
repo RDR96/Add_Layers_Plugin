@@ -28,7 +28,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
 from qgis.core import QgsProject, QgsVectorLayer, QgsRasterLayer
 import win32api
-
+import os
 
 
 
@@ -48,6 +48,7 @@ class AddLayers:
     x = 0
     y = 0
     layers_list = []
+    extension_list = []
 
     def __init__(self, iface):
         """Constructor.
@@ -218,10 +219,15 @@ class AddLayers:
         result = self.dlg.exec_()            
         # See if OK was pressed
         if result:
-            for layer in self.layers_list:                
-                newLayer = QgsRasterLayer(layer, 'test')                
-                win32api.MessageBox(0, str(layer), 'title', 0x00001000)                
-                QgsProject.instance().addMapLayer(newLayer)
+            for index, layer in enumerate(self.layers_list):  
+                if self.extension_list[index] == '.tif':   
+                    newLayer = QgsRasterLayer(layer, 'test')                
+                    win32api.MessageBox(0, str(layer), 'title', 0x00001000)                
+                    QgsProject.instance().addMapLayer(newLayer)
+                else:
+                    newLayer = QgsVectorLayer(layer, 'test', 'ogr')                
+                    win32api.MessageBox(0, str(layer), 'title', 0x00001000)                
+                    QgsProject.instance().addMapLayer(newLayer)
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             
@@ -241,6 +247,8 @@ class AddLayers:
         label.setAlignment(QtCore.Qt.AlignCenter)
         if file not in self.layers_list:
             self.dlg.gridLayout_2.addWidget(label, self.x, self.y) 
+            fileAux, file_extension = os.path.splitext(file)
+            self.extension_list.append(file_extension)
             self.layers_list.append(file)
             self.y += 1
             if self.y == 2:
