@@ -21,13 +21,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-
 from PyQt5 import QtGui, QtCore, QtWidgets
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsVectorLayer, QgsRasterLayer
 import win32api
 
 
@@ -46,6 +45,9 @@ import os.path
 
 class AddLayers:
     """QGIS Plugin Implementation."""
+    x = 0
+    y = 0
+    layers_list = []
 
     def __init__(self, iface):
         """Constructor.
@@ -215,24 +217,39 @@ class AddLayers:
         # Run the dialog event loop
         result = self.dlg.exec_()            
         # See if OK was pressed
-        if result:                        
+        if result:
+            for layer in self.layers_list:                
+                newLayer = QgsRasterLayer(layer, 'test')                
+                win32api.MessageBox(0, str(layer), 'title', 0x00001000)                
+                QgsProject.instance().addMapLayer(newLayer)
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            pass
+            
 
     
     def test_print(self):      
         label = QtWidgets.QLabel()        
-        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", filter="*.shp")        
+        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", "Raster layers(*.tif);;Vector layers(*.shp)")        
 
-        """label.setText(file)"""
-
-        url = QtCore.QUrl.fromLocalFile(file)        
-
+        """label.setText(file)"""        
+            
+        url = QtCore.QUrl.fromLocalFile(file)
         from pathlib import Path    
 
-        filename = Path(file).name        
+        filename = Path(file).name
         label.setText(filename)
-        self.dlg.gridLayout_2.addWidget(label)
-        """win32api.MessageBox(0, filename, 'title', 0x00001000)"""
+        label.setAlignment(QtCore.Qt.AlignCenter)
+        if file not in self.layers_list:
+            self.dlg.gridLayout_2.addWidget(label, self.x, self.y) 
+            self.layers_list.append(file)
+            self.y += 1
+            if self.y == 2:
+                self.x += 1
+                self.y = 0
+        else:
+            win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000)
+        
+        """win32api.MessageBox(0, filename, 'title', 0x00001000)"""        
+        
+        
             
