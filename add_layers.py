@@ -23,7 +23,7 @@
 """
 from PyQt5 import QtGui, QtCore, QtWidgets
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-
+from pathlib import Path
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import *
 from qgis.core import QgsProject, QgsVectorLayer, QgsRasterLayer
@@ -223,28 +223,26 @@ class AddLayers:
             for index, layer in enumerate(self.layers_list):
                 if self.extension_list[index] == '.tif':
                     newLayer = QgsRasterLayer(layer, self.name_layers_list[index])
-                else:
+                else:                    
                     if self.extension_list[index] == '.csv':
                         typeProvider = 'delimitedText'
                     else:
                         typeProvider = 'ogr'
                     newLayer = QgsVectorLayer(layer, self.name_layers_list[index], 'ogr')                  
                 QgsProject.instance().addMapLayer(newLayer)
+
+        self.cleanComponents()        
+        
             
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            
-
-    
+                
     def test_print(self):      
+        
+
         label = QtWidgets.QLabel()        
-        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", "layers(*.tif *.shp *.csv)")        
-
-        """label.setText(file)"""        
-            
+        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", "layers(*.tif *.shp *.csv)")                                
         url = QtCore.QUrl.fromLocalFile(file)
-        from pathlib import Path    
-
         filename = Path(file).name
         label.setText(filename)
         label.setAlignment(QtCore.Qt.AlignCenter)
@@ -260,9 +258,15 @@ class AddLayers:
                 self.x += 1
                 self.y = 0
         else:
-            win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000)
-        
-        """win32api.MessageBox(0, filename, 'title', 0x00001000)"""        
-        
+            win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000)   
+
+    def cleanComponents(self): 
+        for i in reversed(range(self.dlg.gridLayout_2.count())): 
+            self.dlg.gridLayout_2.takeAt(i).widget().setParent(None)
+        self.extension_list.clear()    
+        self.layers_list.clear()
+        self.name_layers_list.clear()
+        self.x = 0
+        self.y = 0
         
             
