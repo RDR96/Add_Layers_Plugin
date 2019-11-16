@@ -49,6 +49,7 @@ class AddLayers:
     y = 0
     layers_list = []
     extension_list = []
+    name_layers_list = []
 
     def __init__(self, iface):
         """Constructor.
@@ -219,15 +220,17 @@ class AddLayers:
         result = self.dlg.exec_()            
         # See if OK was pressed
         if result:
-            for index, layer in enumerate(self.layers_list):  
-                if self.extension_list[index] == '.tif':   
-                    newLayer = QgsRasterLayer(layer, 'test')                
-                    win32api.MessageBox(0, str(layer), 'title', 0x00001000)                
-                    QgsProject.instance().addMapLayer(newLayer)
+            for index, layer in enumerate(self.layers_list):
+                if self.extension_list[index] == '.tif':
+                    newLayer = QgsRasterLayer(layer, self.name_layers_list[index])
                 else:
-                    newLayer = QgsVectorLayer(layer, 'test', 'ogr')                
-                    win32api.MessageBox(0, str(layer), 'title', 0x00001000)                
-                    QgsProject.instance().addMapLayer(newLayer)
+                    if self.extension_list[index] == '.csv':
+                        typeProvider = 'delimitedText'
+                    else:
+                        typeProvider = 'ogr'
+                    newLayer = QgsVectorLayer(layer, self.name_layers_list[index], 'ogr')                  
+                QgsProject.instance().addMapLayer(newLayer)
+            
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             
@@ -235,7 +238,7 @@ class AddLayers:
     
     def test_print(self):      
         label = QtWidgets.QLabel()        
-        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", "Raster layers(*.tif);;Vector layers(*.shp)")        
+        file, _filter = QtWidgets.QFileDialog.getOpenFileName(None, "Select file", "", "layers(*.tif *.shp *.csv)")        
 
         """label.setText(file)"""        
             
@@ -249,6 +252,8 @@ class AddLayers:
             self.dlg.gridLayout_2.addWidget(label, self.x, self.y) 
             fileAux, file_extension = os.path.splitext(file)
             self.extension_list.append(file_extension)
+            base = os.path.basename(file)
+            self.name_layers_list.append(os.path.splitext(base)[0])
             self.layers_list.append(file)
             self.y += 1
             if self.y == 2:
