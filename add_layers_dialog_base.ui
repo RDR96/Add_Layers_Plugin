@@ -60,7 +60,7 @@
       </layout>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="headerText">
        <property name="text">
         <string>Selecciona hasta 6 capas de tipo: SHP, TIF, KML, CSV.</string>
        </property>

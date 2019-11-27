@@ -208,7 +208,9 @@ class AddLayers:
             self.dlg = AddLayersDialog()
 
         # show the dialog
+        
         self.dlg.show()
+        self.dlg.headerText.setStyleSheet("font-weight: bold;") 
         #self.dlg.gridLayout_2.setRowStretch(0, 3)
         #self.dlg.gridLayout_2.setRowStretch(1, 3)
         
@@ -276,7 +278,8 @@ class AddLayers:
                 icon = 'kml_prueba.png'
                            
             label.setStyleSheet("font-size: 25px; background-color:  #42A5F5;; border-radius: 10px; margin: 0px; height: 10px;") 
-            self.dlg.setStyleSheet("QGroupBox {border-radius: 10px; border: 1px solid black; padding: 0;}")                       
+            self.dlg.setStyleSheet("QGroupBox {border-radius: 10px; border: 1px solid black; padding: 0;}")    
+                              
             
             pixmap = QtGui.QPixmap(currentDir + '\images\\' + icon)
             pixmap.scaled(1, 1, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
