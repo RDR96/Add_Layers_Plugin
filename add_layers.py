@@ -28,6 +28,7 @@ from qgis.PyQt.QtGui import QIcon, QPixmap
 from qgis.PyQt.QtWidgets import *
 from qgis.core import QgsProject, QgsVectorLayer, QgsRasterLayer
 import win32api
+from functools import partial 
 import os
 
 # Initialize Qt resources from file resources.py
@@ -210,12 +211,15 @@ class AddLayers:
         # show the dialog
         
         self.dlg.show()
-        self.dlg.headerText.setStyleSheet("font-weight: bold;") 
+        self.dlg.headerText.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.dlg.subHeaderText.setStyleSheet("font-size: 20px;") 
+        self.dlg.layersCountText.setStyleSheet("font-size: 15px;")
+        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list))) 
         #self.dlg.gridLayout_2.setRowStretch(0, 3)
         #self.dlg.gridLayout_2.setRowStretch(1, 3)
         
                     
-        self.dlg.pushButton.clicked.connect(self.test_print)        
+        self.dlg.pushButton.clicked.connect(self.add_layer)        
 
         # Run the dialog event loop
         result = self.dlg.exec_()            
@@ -237,8 +241,8 @@ class AddLayers:
         return
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-                
-    def test_print(self):              
+                    
+    def add_layer(self):              
 
         label = QtWidgets.QLabel()        
         file, _filter = QFileDialog.getOpenFileName(None, "Select file", "", "layers(*.tif *.shp *.csv *.kml)")                        
@@ -246,36 +250,28 @@ class AddLayers:
         filename = Path(file).name
         
         label.setAlignment(QtCore.Qt.AlignCenter)
+
         if file not in self.layers_list:
 
-            fileAux, file_extension = os.path.splitext(file)
-            self.extension_list.append(file_extension)
-            base = os.path.basename(file)
-            self.name_layers_list.append(os.path.splitext(base)[0])
-            self.layers_list.append(file)
-            label.setText(os.path.splitext(base)[0])
+            baseName, file_extension = self.saveFileInfo(file)
+                        
+            label.setText(baseName)
 
             hlay = QtWidgets.QGroupBox()    
             verticalLayout = QtWidgets.QVBoxLayout()
+            deleteButton = QtWidgets.QPushButton("Quitar")
+            cbk = partial(self.buttonClicked, deleteButton)
+            deleteButton.clicked.connect(cbk)
 
             labelImg = QtWidgets.QLabel()             
-            labelImg.setAlignment(QtCore.Qt.AlignCenter)
-            label.setGeometry(QtCore.QRect(0, 0, 5, 5))
-            labelImg.setGeometry(QtCore.QRect(0, 0, 5, 5))     
+            labelImg.setAlignment(QtCore.Qt.AlignCenter)                
             labelImg.setText("")                   
             #left, top, right, bottom
             verticalLayout.setContentsMargins(0, 0, 0, 10)                        
                                         
             currentDir = os.path.dirname(os.path.abspath(__file__))
-            
-            if file_extension == '.shp':
-                icon = 'vector_prueba.png'
-            elif file_extension == '.tif':
-                icon = 'tif_prueba.png'
-            elif file_extension == '.csv':
-                icon = 'csv_prueba.png'
-            elif file_extension == '.kml':
-                icon = 'kml_prueba.png'
+
+            icon = self.setLayerIcon(file_extension)
                            
             label.setStyleSheet("font-size: 25px; background-color:  #42A5F5;; border-radius: 10px; margin: 0px; height: 10px;") 
             self.dlg.setStyleSheet("QGroupBox {border-radius: 10px; border: 1px solid black; padding: 0;}")    
@@ -289,16 +285,103 @@ class AddLayers:
             hlay.setLayout(verticalLayout)
 
             verticalLayout.addWidget(label)            
-            verticalLayout.addWidget(labelImg)  
+            verticalLayout.addWidget(labelImg)
+            verticalLayout.addWidget(deleteButton)  
 
-            self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y) 
-           
+            hlay.clicked.connect(self.prueba)
+
+            self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y)                                                                       
+            self.y += 1
+            if self.y == 2:
+                self.x += 1
+                self.y = 0         
+            self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list)))            
+        else:
+            win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000) 
+
+    def prueba(self):
+        win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000) 
+        
+
+    def saveFileInfo(self, file): 
+        fileAux, file_extension = os.path.splitext(file)
+        self.extension_list.append(file_extension)
+        base = os.path.basename(file)
+        self.name_layers_list.append(os.path.splitext(base)[0])
+        self.layers_list.append(file)
+
+        return os.path.splitext(base)[0], file_extension
+
+    def setLayerIcon(self, file_extension):        
+        if file_extension == '.shp':
+            icon = 'vector_prueba.png'
+        elif file_extension == '.tif':
+            icon = 'tif_prueba.png'
+        elif file_extension == '.csv':
+            icon = 'csv_prueba.png'
+        elif file_extension == '.kml':
+            icon = 'kml_prueba.png'
+        else:
+            icon = None
+        return icon
+    
+    def buttonClicked(self, button):
+        indexToDelete = self.dlg.gridLayout_2.indexOf(button.parent())
+        self.dlg.gridLayout_2.takeAt(indexToDelete).widget().setParent(None)
+        self.extension_list.pop(indexToDelete)    
+        self.layers_list.pop(indexToDelete)
+        self.name_layers_list.pop(indexToDelete)
+        for i in reversed(range(self.dlg.gridLayout_2.count())): 
+            self.dlg.gridLayout_2.takeAt(i).widget().setParent(None)
+        self.x = 0
+        self.y = 0
+
+        for index, layer in enumerate(self.layers_list):
+            hlay = QtWidgets.QGroupBox()    
+            verticalLayout = QtWidgets.QVBoxLayout()
+            label = QtWidgets.QLabel()
+            label.setAlignment(QtCore.Qt.AlignCenter)
+            label.setText(self.name_layers_list[index])
+            deleteButton = QtWidgets.QPushButton("Quitar")
+            cbk = partial(self.buttonClicked, deleteButton)
+            deleteButton.clicked.connect(cbk)
+
+            labelImg = QtWidgets.QLabel()             
+            labelImg.setAlignment(QtCore.Qt.AlignCenter)                
+            labelImg.setText("")                   
+            #left, top, right, bottom
+            verticalLayout.setContentsMargins(0, 0, 0, 10)                        
+                                        
+            currentDir = os.path.dirname(os.path.abspath(__file__))
+
+            icon = self.setLayerIcon(self.extension_list[index])
+                            
+            label.setStyleSheet("font-size: 25px; background-color:  #42A5F5; border-radius: 10px; margin: 0px; height: 10px;") 
+            self.dlg.setStyleSheet("QGroupBox {border-radius: 10px; border: 1px solid black; padding: 0;}")    
+                                
+            
+            pixmap = QtGui.QPixmap(currentDir + '\images\\' + icon)
+            pixmap.scaled(1, 1, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+            labelImg.setPixmap(pixmap)     
+            labelImg.setScaledContents(False)     
+
+            hlay.setLayout(verticalLayout)
+
+            verticalLayout.addWidget(label)            
+            verticalLayout.addWidget(labelImg)
+            verticalLayout.addWidget(deleteButton)  
+
+            hlay.clicked.connect(self.prueba)
+
+            self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y)
             self.y += 1
             if self.y == 2:
                 self.x += 1
                 self.y = 0
-        else:
-            win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000)         
+            self.dlg.pushButton.setEnabled(True)
+        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list))) 
+        #win32api.MessageBox(0, 'click en ' + str(self.dlg.gridLayout_2.indexOf(button.parent())) , 'title', 0x00001000)
+        
 
     def cleanComponents(self): 
         for i in reversed(range(self.dlg.gridLayout_2.count())): 
@@ -308,6 +391,7 @@ class AddLayers:
         self.name_layers_list.clear()
         self.x = 0
         self.y = 0
+        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list)))  
         self.dlg.pushButton.disconnect()          
         
             
