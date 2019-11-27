@@ -209,8 +209,8 @@ class AddLayers:
 
         # show the dialog
         self.dlg.show()
-        self.dlg.gridLayout_2.setRowStretch(0, 3)
-        self.dlg.gridLayout_2.setRowStretch(1, 3)
+        #self.dlg.gridLayout_2.setRowStretch(0, 3)
+        #self.dlg.gridLayout_2.setRowStretch(1, 3)
         
                     
         self.dlg.pushButton.clicked.connect(self.test_print)        
@@ -258,9 +258,11 @@ class AddLayers:
 
             labelImg = QtWidgets.QLabel()             
             labelImg.setAlignment(QtCore.Qt.AlignCenter)
-            
+            label.setGeometry(QtCore.QRect(0, 0, 5, 5))
             labelImg.setGeometry(QtCore.QRect(0, 0, 5, 5))     
-            labelImg.setText("")                                            
+            labelImg.setText("")                   
+            #left, top, right, bottom
+            verticalLayout.setContentsMargins(0, 0, 0, 10)                        
                                         
             currentDir = os.path.dirname(os.path.abspath(__file__))
             
@@ -273,7 +275,7 @@ class AddLayers:
             elif file_extension == '.kml':
                 icon = 'kml_prueba.png'
                            
-            label.setStyleSheet("font-size: 25px; background-color:  #42A5F5;; border-radius: 10px;") 
+            label.setStyleSheet("font-size: 25px; background-color:  #42A5F5;; border-radius: 10px; margin: 0px; height: 10px;") 
             self.dlg.setStyleSheet("QGroupBox {border-radius: 10px; border: 1px solid black; padding: 0;}")                       
             
             pixmap = QtGui.QPixmap(currentDir + '\images\\' + icon)
