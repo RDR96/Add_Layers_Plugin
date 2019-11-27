@@ -370,7 +370,7 @@ class AddLayers:
             verticalLayout.addWidget(label)            
             verticalLayout.addWidget(labelImg)
             verticalLayout.addWidget(deleteButton)  
-            
+
             hlay.clicked.connect(self.prueba)
 
             self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y)
