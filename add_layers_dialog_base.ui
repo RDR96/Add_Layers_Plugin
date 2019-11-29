@@ -28,8 +28,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1015</width>
-            <height>703</height>
+            <width>1011</width>
+            <height>675</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
@@ -41,7 +41,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="uploadLayer">
          <property name="text">
           <string>Importar archivos</string>
          </property>

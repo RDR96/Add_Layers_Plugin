@@ -15,12 +15,18 @@
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
+ *   it under the terms of the MIT License as published by                 *
+ *   the Free Software Foundation                                          *
  *                                                                         *
  ***************************************************************************/
 """
+
+""" 
+ * AddLayers is open-sourced software licensed under the MIT license.
+ * Developed by: Xavier Gerardo Figueroa Soriano
+ * Developed by: Rodrigo Enrique Corvera Díaz 
+"""
+
 from PyQt5 import QtGui, QtCore, QtWidgets 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from pathlib import Path
@@ -211,15 +217,23 @@ class AddLayers:
         # show the dialog
         
         self.dlg.show()
+
+        #  Sección de código que ofrece la posibilidad de aplicar estilos a los elementos
+        #  En este caso a las etiquetas de texto
         self.dlg.headerText.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.dlg.subHeaderText.setStyleSheet("font-size: 20px;") 
         self.dlg.layersCountText.setStyleSheet("font-size: 15px;")
+
+        # Se actualiza la información del label para notificar el número de capas cargadas
         self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list))) 
+
+
         #self.dlg.gridLayout_2.setRowStretch(0, 3)
         #self.dlg.gridLayout_2.setRowStretch(1, 3)
         
-                    
-        self.dlg.pushButton.clicked.connect(self.add_layer)        
+        # El botón de cargar capa se conecta con la función add_layer la cual se encarga del manejo 
+        # de carga de capas.                    
+        self.dlg.uploadLayer.clicked.connect(self.add_layer)        
 
         # Run the dialog event loop
         result = self.dlg.exec_()            
@@ -242,68 +256,125 @@ class AddLayers:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
                     
-    def add_layer(self):              
+    def add_layer(self):   
 
-        label = QtWidgets.QLabel()        
+        """
+            Función  encargada de cargar capas.
+
+            :param self: Contiene información del contexto de la clase
+            :type class: AddLayers
+
+        """           
+
+        label = QtWidgets.QLabel()
+
+        # Función QFileDialog.getOpenFileName con la que se seleccionan las capas mediante una ventana
+        # que muestra nuestro sistema de archivos        
         file, _filter = QFileDialog.getOpenFileName(None, "Select file", "", "layers(*.tif *.shp *.csv *.kml)")                        
-        url = QtCore.QUrl.fromLocalFile(file)
+
+        # Obtenemos el nombre del archivo
         filename = Path(file).name
         
+        # Centramos el contenido del elemento label (QLabel)
         label.setAlignment(QtCore.Qt.AlignCenter)
 
+        #Verificamos si ya existe el archivo en nuestra lista de capas
         if file not in self.layers_list:
+
+            """ 
+                Obtenemos una tupla, el cual contiene la siguiente información
+                baseName: Nombre sin extensión del archivo
+                file_extension: Obtenemos la extensión del archivo.
+            """
 
             baseName, file_extension = self.saveFileInfo(file)
                         
+            # Colocamos el nombre sin extensión en la ventana de plugin
             label.setText(baseName)
 
+            # Clase que nos ayuda a contener elementos con un layout específico
             hlay = QtWidgets.QGroupBox()    
+
+            # Layout vertical de elementos
             verticalLayout = QtWidgets.QVBoxLayout()
-            deleteButton = QtWidgets.QPushButton("Quitar")
-            cbk = partial(self.buttonClicked, deleteButton)
+            deleteButton = QtWidgets.QPushButton("Remove")
+
+            # La función partial nos ayuda a empaquetar la funcionalidad que le pasaremos a un objeto
+            # en este caso al botón deleteButton se le asocia la función deleteLayer
+            cbk = partial(self.deleteLayer, deleteButton)
+
+            # Se conecta el objeto con la función deleteLayer que se mapea mediante partial
             deleteButton.clicked.connect(cbk)
 
             labelImg = QtWidgets.QLabel()             
             labelImg.setAlignment(QtCore.Qt.AlignCenter)                
             labelImg.setText("")                   
-            #left, top, right, bottom
+            
+            # Para determinar los margenes de un elemento, en este caso del contenedor con
+            # la información de la capa carga. El orden de los parametros es el siguiente: left, top, right, bottom
             verticalLayout.setContentsMargins(0, 0, 0, 10)                        
                                         
+            # Función con la que podemos obtener el directorio actual.
             currentDir = os.path.dirname(os.path.abspath(__file__))
 
+            # Función que retorna el icono que se colocará en la infomación de la capa cargada en el plugin
             icon = self.setLayerIcon(file_extension)
                            
             label.setStyleSheet("font-size: 25px; background-color:  #42A5F5;; border-radius: 10px; margin: 0px; height: 10px;") 
             self.dlg.setStyleSheet("QGroupBox {border-radius: 10px; border: 1px solid black; padding: 0;}")    
                               
-            
+            # Con Qpixmap se puede colocar una imagen dentro de un objeto de tipo QLabel 
             pixmap = QtGui.QPixmap(currentDir + '\images\\' + icon)
+            #Para escalar la imagen
             pixmap.scaled(1, 1, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
+            # Se coloca la imagen
             labelImg.setPixmap(pixmap)     
             labelImg.setScaledContents(False)     
-
+            
+            # Se coloca el layout al elemento contenedor
             hlay.setLayout(verticalLayout)
 
+            # Se colocan los Widgets que se muestran en las tarjetas de las capas cargadas
             verticalLayout.addWidget(label)            
             verticalLayout.addWidget(labelImg)
             verticalLayout.addWidget(deleteButton)  
+            
+            
+            """ 
+                Se coloca el elemento en el Grid de la siguiente manera:
+                .addWidget(Elemento_contenedor, posiciónX, posiciónY)
 
-            hlay.clicked.connect(self.prueba)
+            """
+            self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y)    
 
-            self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y)                                                                       
+            # El siguiente condicional tratará de verificar si ya se alcanzó el número máximo de columnas 
+            # en nuestro caso es de 2 columnas máximo. Cuando se alcanza el máximo se salta a la próxima fila                                                                   
             self.y += 1
             if self.y == 2:
                 self.x += 1
                 self.y = 0         
+            
+
+            # Moficación de label con el que contamos el número de capas que se han cargado
             self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list)))            
         else:
             win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000) 
 
-    def prueba(self):
-        win32api.MessageBox(0, 'Ya se encuentra seleccionado', 'title', 0x00001000) 
-        
 
     def saveFileInfo(self, file): 
+        """
+            Función encarga de guardar la información del archivo que se cargará en QGIS
+
+            :param self: Contiene información del contexto de la clase
+            :type class: AddLayers
+
+            :param file: Cadena de texto que contiene la ruta absoluta del archivo que se cargará en QGIS
+            :type text: str
+
+            :returns: Una tupla con dos tipos de información, el nombre del archivo sin la extensión y la extensión
+            :rtype: Tuple
+        """
+        
         fileAux, file_extension = os.path.splitext(file)
         self.extension_list.append(file_extension)
         base = os.path.basename(file)
@@ -313,6 +384,19 @@ class AddLayers:
         return os.path.splitext(base)[0], file_extension
 
     def setLayerIcon(self, file_extension):        
+        """
+            Función que determina el tipo de ícono que se mostrará para la capa seleccionada
+
+            :param self: Contiene información del contexto de la clase
+            :type class: AddLayers
+
+            :param file_extension: Cadena de texto que contiene la extensión del archivo seleccionado
+            :type text: str
+
+            :returns: El nombre de la imagen dependiendo del tipo de capa seleccionada
+            :rtype: str
+        """
+
         if file_extension == '.shp':
             icon = 'vector_prueba.png'
         elif file_extension == '.tif':
@@ -325,25 +409,57 @@ class AddLayers:
             icon = None
         return icon
     
-    def buttonClicked(self, button):
+    def deleteLayer(self, button):
+        """
+            Función que elimina la capa que se ha cargado en el grid, se elimina tomando como referencia 
+            el indice del elemento dentro del grid.
+
+            La función procede de la siguiente manera:
+            Se obtiene el índice del elemento que se quiere eliminar al momento de dar click en el botón remover.
+            Se eliminan los elementos de las listas correspondientes de nombre, extensión y una con la combinación de ambas
+            Luego se eliminan todos los elementos del grid y se vuelven a cargar de nuevo leyendo las listas correspondientes
+            con la particularidad que ahora solo se encuentra la información actualizada            
+
+            :param self: Contiene información del contexto de la clase
+            :type class: AddLayers
+
+            :param button: Referencia del botón dentro del grid
+            :type Object: QPushButton             
+        """
+
+        # Se selecciona el indice del contenedor de la capa que se quiere eliminar
         indexToDelete = self.dlg.gridLayout_2.indexOf(button.parent())
+
+        # Se elimina el elemento cuando se le designa un padre inexistente en el cual mostrarse
         self.dlg.gridLayout_2.takeAt(indexToDelete).widget().setParent(None)
+
+        # Se eliminan los elementos de la lista con la función pop(indice_a_eliminar) basados en el indice en el que
+        # se colocaron en el grid y su correpiente en las listas
         self.extension_list.pop(indexToDelete)    
         self.layers_list.pop(indexToDelete)
         self.name_layers_list.pop(indexToDelete)
+
+        # Se recorre todo el grid y se eliminan los elementos (todos).
         for i in reversed(range(self.dlg.gridLayout_2.count())): 
             self.dlg.gridLayout_2.takeAt(i).widget().setParent(None)
+
+        # Se reinician los valores con los que colocamos los elementos en el grid.
+        # Son los indices en el grid.
         self.x = 0
         self.y = 0
 
+        """
+         Para el siguiente código se sugiere leer los comentarios de la función add_layer, ya que comparte mucha
+         similaridad.         
+        """
         for index, layer in enumerate(self.layers_list):
             hlay = QtWidgets.QGroupBox()    
             verticalLayout = QtWidgets.QVBoxLayout()
             label = QtWidgets.QLabel()
             label.setAlignment(QtCore.Qt.AlignCenter)
             label.setText(self.name_layers_list[index])
-            deleteButton = QtWidgets.QPushButton("Quitar")
-            cbk = partial(self.buttonClicked, deleteButton)
+            deleteButton = QtWidgets.QPushButton("Remove")
+            cbk = partial(self.deleteLayer, deleteButton)
             deleteButton.clicked.connect(cbk)
 
             labelImg = QtWidgets.QLabel()             
@@ -369,29 +485,42 @@ class AddLayers:
 
             verticalLayout.addWidget(label)            
             verticalLayout.addWidget(labelImg)
-            verticalLayout.addWidget(deleteButton)  
-
-            hlay.clicked.connect(self.prueba)
+            verticalLayout.addWidget(deleteButton)              
 
             self.dlg.gridLayout_2.addWidget(hlay, self.x, self.y)
             self.y += 1
             if self.y == 2:
                 self.x += 1
                 self.y = 0
-            self.dlg.pushButton.setEnabled(True)
-        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list))) 
-        #win32api.MessageBox(0, 'click en ' + str(self.dlg.gridLayout_2.indexOf(button.parent())) , 'title', 0x00001000)
+            self.dlg.uploadLayer.setEnabled(True)
+        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list)))         
         
 
     def cleanComponents(self): 
-        for i in reversed(range(self.dlg.gridLayout_2.count())): 
-            self.dlg.gridLayout_2.takeAt(i).widget().setParent(None)
-        self.extension_list.clear()    
-        self.layers_list.clear()
-        self.name_layers_list.clear()
+        """
+            Función que limpia totalmente todos los objetos utilizados en la ejecución de nuestro plugin
+            al momento de ser cerrada la ventana
+
+            :param self: Contiene información del contexto de la clase
+            :type class: AddLayers                                   
+        """
+
+
         self.x = 0
         self.y = 0
-        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list)))  
-        self.dlg.pushButton.disconnect()          
+
+        for i in reversed(range(self.dlg.gridLayout_2.count())): 
+            self.dlg.gridLayout_2.takeAt(i).widget().setParent(None)
+        
+        # Se limpian las listas
+        self.extension_list.clear()    
+        self.layers_list.clear()
+        self.name_layers_list.clear() 
+
+        # El label que nos indica el número de capas que se habían cargado se reestrablece a cero
+        self.dlg.layersCountText.setText("Layers include: " + str(len(self.layers_list)))        
+
+        # Se desconecta la función con la que podemos cargar una capa a nuestro plugin  
+        self.dlg.uploadLayer.disconnect()          
         
             
