@@ -15,17 +15,13 @@ de QGIS.
 
 Luego de clonar el proyecto será necesario activar el plugin en QGIS desde la ventana de Administración de complementos:
 
-![](./images/step1.png)
+![](./images/step1.png).
 
 Encontraremos el plugin desde la ventana como se muestra:
 
-![](./images/step2.png)
+![](./images/step2_include.png)
 
-Marcamos el plugin para poderlo activar
-
-![](./images/step2_2.png)
-
-Cerramos la ventana y ya es posible utilzar el plugin.
+Marcamos el plugin para poderlo activar y luego cerramos la ventana. Ya es posible utilizar el plugin.
 
 # Modo de uso
 
