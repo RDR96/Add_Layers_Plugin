@@ -15,11 +15,11 @@ de QGIS.
 
 Luego de clonar el proyecto será necesario activar el plugin en QGIS desde la ventana de Administración de complementos:
 
-![](./images/step1.png).
+![](./images/step1.PNG).
 
 Encontraremos el plugin desde la ventana como se muestra:
 
-![](./images/step2_include.png)
+![](./images/step2_include.PNG)
 
 Marcamos el plugin para poderlo activar y luego cerramos la ventana. Ya es posible utilizar el plugin.
 
@@ -27,17 +27,17 @@ Marcamos el plugin para poderlo activar y luego cerramos la ventana. Ya es posib
 
 Para poderlo utilizar nos dirigimos a la misma sección de complementos y damos click en el plugin Add Layers:
 
-![](./images/step3_man.png)
+![](./images/step3_man.PNG)
 
 Se abrirá la siguiente ventana:
 
-![](./images/step4.png)
+![](./images/step4.PNG)
 
 Le daremos en el botón **Importar archivos** el cual nos abrirá el gestor de archivos para agregar las capas que necesitemos.
 Repetimos este proceso hasta tener las que necesitemos:
 
-![](./images/step5.png)
+![](./images/step5.PNG)
 
 Le damos al botón **Aceptar** y obtenemos el siguiente resulto:
 
-![](./images/step6.png)
+![](./images/step6.PNG)
